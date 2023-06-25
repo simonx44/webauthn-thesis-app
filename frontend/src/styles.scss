@@ -1,4 +1,36 @@
-/* You can add global styles to this file, and also import other style files */
+$color-tiny: #dbd3d8;
+$color-small: #fac748;
+$color-medium: #87d68d;
+$color-large: #27abd6;
+$color-xlarge: #e18335;
+$color-2xlarge: #db4c40;
+$color-3xlarge: #8d6a9f;
+$dotted-border-color: #e5e7e6;
 
-@import "@angular/cdk/overlay-prebuilt.css";
-@import "@angular/cdk/a11y-prebuilt.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '@aposin/ng-aquila/styles/theming.scss';
+@import './mytheme.scss';
+
+@include nx-build-theme(themeName);
+
+body {
+  //background: #ffffff;
+  font-family: 'Public Sans', sans-serif; // Aquila font
+  font-size: 16px;
+  line-height: 24px;
+  min-height: 100vh;
+}
+
+starter-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+
+footer {
+  margin-top: auto;
+}

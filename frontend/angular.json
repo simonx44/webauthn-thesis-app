@@ -27,13 +27,21 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
+              "src/favicon.ico",
               "src/assets"
             ],
+            "stylePreprocessorOptions": {
+            "includePaths": [
+              "node_modules/",
+              ""
+            ]
+          },
             "styles": [
-              "src/styles.scss",
+              "node_modules/@angular/cdk/overlay-prebuilt.css",
               "node_modules/@aposin/ng-aquila/css/normalize.css",
               "node_modules/@aposin/ng-aquila/css/utilities.css",
-              "node_modules/@aposin/ng-aquila/themes/aposin.css"
+              "node_modules/@aposin/ng-aquila/themes/aposin.css",
+              "src/styles.scss"
             ],
             "scripts": []
           },

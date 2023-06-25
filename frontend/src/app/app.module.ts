@@ -22,34 +22,37 @@ import { NxPopoverModule } from '@aposin/ng-aquila/popover';
 import { NxSmallStageModule } from '@aposin/ng-aquila/small-stage';
 
 import { AppComponent } from './app.component';
+import {NxHeaderModule} from "@aposin/ng-aquila/header";
+import { HeaderComponent } from './header/header.component';
 
 @NgModule({
-    declarations: [AppComponent],
-    imports: [
-        BrowserModule,
-        BrowserAnimationsModule,
-        FormsModule,
-        HttpClientJsonpModule,
-        HttpClientModule,
-        ReactiveFormsModule,
-        RouterModule.forRoot([]),
-        NxButtonModule,
-        NxCheckboxModule,
-        NxDocumentationIconModule,
-        NxDropdownModule,
-        NxFooterModule,
-        NxFormfieldModule,
-        NxGridModule,
-        NxHeadlineModule,
-        NxIconModule,
-        NxInputModule,
-        NxLinkModule,
-        NxMessageModule,
-        NxModalModule,
-        NxOverlayModule,
-        NxPopoverModule,
-        NxSmallStageModule,
-    ],
+    declarations: [AppComponent, HeaderComponent],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    FormsModule,
+    HttpClientJsonpModule,
+    HttpClientModule,
+    ReactiveFormsModule,
+    RouterModule.forRoot([]),
+    NxButtonModule,
+    NxCheckboxModule,
+    NxDocumentationIconModule,
+    NxDropdownModule,
+    NxFooterModule,
+    NxFormfieldModule,
+    NxGridModule,
+    NxHeadlineModule,
+    NxIconModule,
+    NxInputModule,
+    NxLinkModule,
+    NxMessageModule,
+    NxModalModule,
+    NxOverlayModule,
+    NxPopoverModule,
+    NxSmallStageModule,
+    NxHeaderModule,
+  ],
     bootstrap: [AppComponent],
 })
 export class AppModule {}

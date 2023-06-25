@@ -1,89 +1,52 @@
-<div class="starter-app">
-    <nx-small-stage>
-        <h1 nxHeadline="section">Aquila Insurance App</h1>
-    </nx-small-stage>
+<div class="h-screen flex flex-col">
 
-    <form [formGroup]="formGroup" class="form-example nx-margin-top-s">
-        <div nxLayout="grid">
-            <div nxRow>
-                <div nxCol="12">
-                    <h2 nxHeadline="subsection-small" class="nx-margin-top-2m nx-margin-bottom-s">Your application details</h2>
-                </div>
-            </div>
-            <div nxRow>
-                <div nxCol="12,12,6">
-                    <nx-formfield label="Your Name">
-                        <input nxInput formControlName="name" />
-                        <nx-error nxFormfieldError> <strong>Please note:</strong> this field is required! </nx-error>
-                    </nx-formfield>
-                </div>
+<app-header></app-header>
 
-                <div nxCol="12,12,6">
-                    <nx-formfield label="Number of items">
-                        <nx-dropdown formControlName="items">
-                            <nx-dropdown-item value="1">1</nx-dropdown-item>
-                            <nx-dropdown-item value="2">2</nx-dropdown-item>
-                            <nx-dropdown-item value="3">3</nx-dropdown-item>
-                        </nx-dropdown>
-                        <nx-error nxFormfieldError> Please select an option. </nx-error>
-                    </nx-formfield>
-                </div>
-            </div>
-            <div nxRow>
-                <div nxCol="12,12,6">
-                    <nx-formfield label="E-Mail">
-                        <input nxInput formControlName="email" />
+  <div class="flex flex-col gap-4 justify-center items-center flex-1">
 
-                        <nx-icon nxFormfieldAppendix name="info-circle-o" [nxPopoverTriggerFor]="popoverEmail" nxPopoverTrigger="hover"> </nx-icon>
-                        <nx-error nxFormfieldError> Please provide a valid email address. </nx-error>
-                    </nx-formfield>
-                </div>
-            </div>
-            <div nxRow>
-                <div nxCol="12">
-                    <nx-checkbox class="nx-margin-bottom-s" formControlName="consent"
-                        >I have read and understood
-                        <a nxPlainButton (click)="openConsentDialog()">the disclaimer and conditions.</a>
-                    </nx-checkbox>
+    <div>
 
-                    <button nxButton type="submit" (click)="openSubmitDialog()" [disabled]="formGroup.invalid" class="nx-margin-top-s">Submit</button>
-                </div>
-            </div>
-        </div>
-    </form>
+      <h3 nxHeadline="subsection-large">
+        FIDO2 Prototyp
+      </h3>
 
-    <footer nx-footer>
-        <nx-footer-copyright> &copy; Allianz </nx-footer-copyright>
-    </footer>
+    </div>
 
-    <nx-popover #popoverEmail>
-        <div style="max-width: 200px">Please enter your email address.</div>
-    </nx-popover>
+    <div class="flex flex-col gap-4">
 
-    <ng-template #consentTemplate>
-        <div nxModalContent>
-            <h3 nxHeadline="subsection-medium" class="nx-margin-bottom-3m">Modal with Disclaimer</h3>
 
-            <p nxCopytext class="nx-margin-bottom-s nx-font-weight-bold">Conditions and Disclaimer</p>
-            <p nxCopytext class="nx-margin-bottom-m">
-                Some copy text that describes what this overlay is all about. Tdiam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed
-                diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Lorem ipsum dolor sit amet, consetetur sadipscing et justo duo dolores
-                et ea rebum. Lorem ipsum dolor sit amet, consetetur sadipscing Some copy text that describes what this overlay is all about. Tdiam nonumy eirmod
-                tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Lorem ipsum
-                dolor sit amet, consetetur sadipscing et justo duo dolores et ea rebum.
-            </p>
-        </div>
-    </ng-template>
+     <form [formGroup]="formGroup" class="w-[300px]">
+       <nx-formfield label="Username">
+         <input nxInput formControlName="username"/>
+         <nx-error nxFormfieldError>
 
-    <ng-template #submitTemplate>
-        <div nxModalContent>
-            <h3 nxHeadline="subsection-medium" class="nx-margin-bottom-m">Your data has been submitted to the backend</h3>
 
-            <p nxCopytext class="nx-margin-bottom-m">
-                Congratulations, this ends the Starter App user journey. We hope you will use the Starter App as a foundation to build something awesome!
-            </p>
-        </div>
-    </ng-template>
+                    Your username is missing!   At least 4 letters required.
+
+
+         </nx-error>
+       </nx-formfield>
+
+       <div class="flex flex-col gap-3">
+
+         <button nxButton="secondary" type="button" (click)="initRegistration()">Register</button>
+
+         <button nxButton="secondary" type="button" (click)="initLogin()">Login</button>
+
+
+       </div>
+
+
+     </form>
+
+
+    </div>
+
+  </div>
+
+
+  <footer nx-footer>
+    <nx-footer-copyright> &copy; Allianz</nx-footer-copyright>
+  </footer>
+
 </div>
-
-<!-- Copyright Allianz 2023 -->

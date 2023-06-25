@@ -1,0 +1,66 @@
+@import '@aposin/ng-aquila/styles/theming';
+$my-theme: (
+  ui-background: #FFF,
+  ui-01: #FFF,
+  ui-02: #143851,
+  ui-03: #194666,
+  ui-04: #0F2A3D,
+  ui-05: #0F2A3D,
+  ui-06:  #0F2A3D,
+
+
+
+  interactive-text: #0F2A3D,
+  interactive-primary: #0F2A3D,
+  hover-primary: #0a4f6b,
+  hover-secondary: #194666,
+
+  active-primary: #66C4E3,
+  hover-link: #51BCDF,
+
+  focus-box-shadow: (
+    0 0 0 2px #0F2A3D,
+    0 0 0 6px #27ABD6
+  ),
+
+  focus-inset-box-shadow: (
+    inset 0 0 0 4px #27ABD6,
+    inset 0 0 0 6px #0F2A3D
+  ),
+
+
+  text-01: #000,
+  text-02: #e9ebec,
+
+  info: #7C97D0,
+  warning: #EFBE25,
+  danger: #ED6F7C,
+  success: #26AE31,
+
+  accent-01: #00B17F, // emphasis
+  accent-02: #6B8CFF, // cta
+
+  disabled-01: #969696,
+  disabled-02: #DBDBDB,
+  disabled-03: #EDEDED,
+  disabled-04: rgba(39, 171, 214, 0.35),
+
+  negative: #0F2A3D,
+  negative-accent: #E5E7E6,
+  negative-01: #23628F,
+  negative-02: #2D7FB8,
+  negative-background: #0F2A3D,
+
+  negative-dimmed: rgba(15, 42, 61, 0.4),
+  negative-01-dimmed: #23628F,
+  negative-02-dimmed: #2D7FB8,
+  negative-background-dimmed: rgba(229, 231, 230, 0.4),
+
+  grid-max-width: 1184px,
+
+  readonly-01: rgba(150, 150, 150, 0.35),
+  readonly-02: #969696,
+  readonly-03: #FFFFFF,
+);
+
+$nx-themes: nx-register-theme($my-theme, themeName);
