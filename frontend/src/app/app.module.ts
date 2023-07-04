@@ -15,7 +15,7 @@ import { NxHeadlineModule } from '@aposin/ng-aquila/headline';
 import { NxIconModule } from '@aposin/ng-aquila/icon';
 import { NxInputModule } from '@aposin/ng-aquila/input';
 import { NxLinkModule } from '@aposin/ng-aquila/link';
-import { NxMessageModule } from '@aposin/ng-aquila/message';
+import {NX_MESSAGE_TOAST_DEFAULT_CONFIG, NxMessageModule} from '@aposin/ng-aquila/message';
 import { NxModalModule } from '@aposin/ng-aquila/modal';
 import { NxOverlayModule } from '@aposin/ng-aquila/overlay';
 import { NxPopoverModule } from '@aposin/ng-aquila/popover';
@@ -23,13 +23,19 @@ import { NxSmallStageModule } from '@aposin/ng-aquila/small-stage';
 
 import { AppComponent } from './app.component';
 import {NxHeaderModule} from "@aposin/ng-aquila/header";
-import { HeaderComponent } from './header/header.component';
+import { HeaderComponent } from './components/header/header.component';
+import { AuthComponent } from './components/auth/auth.component';
+import {AppRoutingModule} from "./app-routing.module";
+import {NxSpinnerModule} from "@aposin/ng-aquila/spinner";
+import { HomeComponent } from './components/home/home.component';
+import { AuthCreateResultParserComponent } from './components/auth-create-result-parser/auth-create-result-parser.component';
 
 @NgModule({
-    declarations: [AppComponent, HeaderComponent],
+  declarations: [AppComponent, HeaderComponent, AuthComponent, HomeComponent, AuthCreateResultParserComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    AppRoutingModule,
     FormsModule,
     HttpClientJsonpModule,
     HttpClientModule,
@@ -52,6 +58,7 @@ import { HeaderComponent } from './header/header.component';
     NxPopoverModule,
     NxSmallStageModule,
     NxHeaderModule,
+    NxSpinnerModule,
   ],
     bootstrap: [AppComponent],
 })

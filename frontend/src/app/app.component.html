@@ -1,52 +1,10 @@
 <div class="h-screen flex flex-col">
-
-<app-header></app-header>
-
-  <div class="flex flex-col gap-4 justify-center items-center flex-1">
-
-    <div>
-
-      <h3 nxHeadline="subsection-large">
-        FIDO2 Prototyp
-      </h3>
-
-    </div>
-
-    <div class="flex flex-col gap-4">
-
-
-     <form [formGroup]="formGroup" class="w-[300px]">
-       <nx-formfield label="Username">
-         <input nxInput formControlName="username"/>
-         <nx-error nxFormfieldError>
-
-
-                    Your username is missing!   At least 4 letters required.
-
-
-         </nx-error>
-       </nx-formfield>
-
-       <div class="flex flex-col gap-3">
-
-         <button nxButton="secondary" type="button" (click)="initRegistration()">Register</button>
-
-         <button nxButton="secondary" type="button" (click)="initLogin()">Login</button>
-
-
-       </div>
-
-
-     </form>
-
-
-    </div>
-
-  </div>
-
-
+  <app-header></app-header>
+  <router-outlet></router-outlet>
   <footer nx-footer>
     <nx-footer-copyright> &copy; Allianz</nx-footer-copyright>
   </footer>
+
+  <app-auth-create-result-parser></app-auth-create-result-parser>
 
 </div>
