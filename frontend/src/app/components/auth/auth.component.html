@@ -1,26 +1,39 @@
-<div class="flex flex-col gap-4 justify-center items-center flex-1 h-full">
+<div class="flex flex-col gap-4 justify-center items-center flex-1 h-[90vh]">
   <div>
     <h3 nxHeadline="subsection-large">
       FIDO2 Prototyp
     </h3>
+
+    <span class="mt-2">
+      Enter a username to {{isLoginMode ? "login" : "register" }}
+    </span>
+
   </div>
 
   <div class="flex flex-col gap-4">
-    <form [formGroup]="formGroup" class="w-[300px]">
+    <form [formGroup]="formGroup" class="w-[400px]">
+
       <nx-formfield label="Username">
         <input nxInput formControlName="username"/>
         <nx-error nxFormfieldError>
           Your username is missing! At least 4 letters required.
         </nx-error>
       </nx-formfield>
-      <div class="flex flex-col gap-3">
-        <button nxButton="secondary" type="button" (click)="initRegistration()">
-          <span>Register</span>
-        </button>
-        <button nxButton="secondary" type="button" (click)="initLogin()">
-          <span>Login</span>
-        </button>
 
+
+      <div class="flex flex-col gap-3">
+        <nx-error *ngIf="error.isError">
+          {{!error.msg ? "An unexpected error occured" : error.msg}}
+        </nx-error>
+        <button nxButton="primary" type="button" (click)="initAuth()">
+          <span>{{isLoginMode ? "Login" : "Register"}}</span>
+        </button>
+      </div>
+
+
+      <div class="flex flex-box justify-end my-2 underline cursor-pointer authBtn">
+        <span
+          (click)="handleModeSwitch()">{{!isLoginMode ? "Login instead" : "Register instead"}}</span>
       </div>
     </form>
   </div>

@@ -15,8 +15,6 @@ public class CompleteRegistrationDto {
     String credential;
     @NotNull
     @NotBlank
-    String username;
-    @NotNull
-    @NotBlank String credentialName;
+    String name;
 
 }

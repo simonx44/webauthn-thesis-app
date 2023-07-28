@@ -1,1 +1,76 @@
-<p>home works!</p>
+<div class="grid justify-center min-h-[80vh]">
+
+
+  <div *ngIf="httpRequest.isLoading" class="flex flex-col justify-center items-center gap-3">
+    <nx-spinner negative="true" size="large"></nx-spinner>
+    <h4 nxHeadline="subsection-xsmall negative">The content is loading. Please wait a moment</h4>
+  </div>
+
+  <div *ngIf="httpRequest.isError && !httpRequest.isLoading" class="flex flex-col justify-center items-center gap-3">
+    <nx-error class="nx-margin-bottom-m">
+      Unfortunately, your content could not be loaded.
+    </nx-error>
+    <button (click)="getUserData()" nxButton="primary" type="button">
+      Try again!
+    </button>
+  </div>
+
+  <div *ngIf="!httpRequest.isLoading && !httpRequest.isError" class="mx-10 justify-self-start mt-5">
+    <div class="flex justify-end">
+
+      <button (click)="openModal()" nxButton>Add passkey</button>
+
+    </div>
+
+    <h3 class="nx-margin-bottom-2m" nxHeadline="subsection-small">
+      Your passkeys:
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 2xl::grid-cols-6 gap-4">
+
+
+      <app-passkey *ngFor="let key of authenticators" [data]="key"
+                   [deleteable]="authenticators.length != 1"></app-passkey>
+
+
+    </div>
+
+
+  </div>
+
+</div>
+
+
+<ng-template #template>
+  <div class="centered-content w-full">
+    <h3 class="nx-modal-margin-bottom" nxHeadline="subsection-medium">
+      Add a new passkey
+    </h3>
+    <p class="nx-modal-margin-bottom" nxCopytext="small">
+      Register a new passkey
+    </p>
+
+    <div>
+      <form [formGroup]="formGroup" class="w-full">
+
+        <nx-formfield label="Passkey name">
+          <input formControlName="passkeyName" nxInput/>
+        </nx-formfield>
+      </form>
+    </div>
+
+    <div class="two-button-container">
+      <button
+        (click)="closeModal()"
+        class="nx-margin-right-s"
+        nxButton="secondary">
+        Cancel
+      </button>
+      <button
+        [disabled]="!isValueValid()"
+        (click)="registerPasskey()" nxButton>Register
+      </button>
+    </div>
+  </div>
+
+</ng-template>
+

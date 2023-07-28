@@ -1,8 +1,7 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {CompleteRegistrationDto, CompletionApiResult, InitRegistrationCeremonyDto} from "../types";
-import {catchError, concatMap, flatMap, from, map, Observable, of, throwError} from "rxjs";
-import * as base64js from 'base64-js';
+import {HttpClient} from '@angular/common/http';
+import {CompletionApiResult, InitCredentialCreateCeremonyDto} from "../types";
+import {concatMap, from, map, Observable} from "rxjs";
 import {AuthObjectMapper} from "./AuthObjectMapper";
 
 @Injectable({
@@ -26,13 +25,13 @@ export class WebauthnService {
    * 3.Step: Call browser Web Authentication api (function createAuthenticator)
    * @param username
    */
-  public startRegisterCeremony(username: string): Observable<any> {
+  public startRegisterCeremony(credentialName: string): Observable<any> {
     const url = `${WebauthnService.BASE_URL}/auth/registerInit`;
-    const body: InitRegistrationCeremonyDto = {username, displayName: username};
+    const body: InitCredentialCreateCeremonyDto = {name: credentialName};
     return this.client.post(url, body, WebauthnService.DEFAULT_HEADERS)
       .pipe(
         map(res => AuthObjectMapper.mapToCredentialCreationOption(res)),
-        concatMap((options) => this.createAuthenticator(options, username)));
+        concatMap((options) => this.createAuthenticator(options, credentialName)));
   }
 
 
@@ -46,16 +45,26 @@ export class WebauthnService {
    * @param options
    * @param username
    */
-  public createAuthenticator(options: CredentialCreationOptions, username: string) {
+  public createAuthenticator(options: CredentialCreationOptions, credentialName: string, registrationMode = true) {
     const createPK = navigator.credentials.create(options);
     return from(createPK)
       .pipe(
-        map((registrationRes) => AuthObjectMapper.transformToServerRegistrationCompleteObject(registrationRes, username)),
+        map((registrationRes) => AuthObjectMapper.transformToServerRegistrationCompleteObject(registrationRes, credentialName)),
         concatMap(body => {
-          const url = `${WebauthnService.BASE_URL}/auth/registrationComplete`;
+          const url = registrationMode ? `${WebauthnService.BASE_URL}/auth/registrationComplete` : `${WebauthnService.BASE_URL}/auth/passkey/complete`;
           return this.client.post<CompletionApiResult>(url, body, WebauthnService.DEFAULT_HEADERS)
         })
       );
+  }
+
+
+  public startAddCredentialCeremony(credentialName: string): Observable<any> {
+    const url = `${WebauthnService.BASE_URL}/auth/passkey`;
+    const body: InitCredentialCreateCeremonyDto = {name: credentialName};
+    return this.client.post(url, body, WebauthnService.DEFAULT_HEADERS)
+      .pipe(
+        map(res => AuthObjectMapper.mapToCredentialCreationOption(res)),
+        concatMap((options) => this.createAuthenticator(options, credentialName, false)));
   }
 
 
@@ -96,6 +105,15 @@ export class WebauthnService {
           return this.client.post(url, res, WebauthnService.DEFAULT_HEADERS)
         })
       );
+
+  }
+
+  public getUserAuthenticators() {
+    const url = `${WebauthnService.BASE_URL}/auth/authenticator`;
+
+    return this.client.get<any>(url, WebauthnService.DEFAULT_HEADERS)
+      .pipe(
+        map(res => res.map((item: any) => ({...item, attestationObject: JSON.parse(item.parsedAttestationObject)}))));
 
   }
 

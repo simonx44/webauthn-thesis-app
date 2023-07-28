@@ -3,7 +3,8 @@ import {throwError} from "rxjs";
 
 export class AuthObjectMapper {
 
-  public static transformToServerRegistrationCompleteObject(options: any, username: string) {
+  public static transformToServerRegistrationCompleteObject(options: any, name: string) {
+
     const credentials = {
       type: options.type,
       id: options.id,
@@ -15,7 +16,7 @@ export class AuthObjectMapper {
       clientExtensionResults: options.getClientExtensionResults(),
     };
 
-    return {credential: JSON.stringify(credentials), username: username, credentialName: username};
+    return {credential: JSON.stringify(credentials), name};
 
   }
 
@@ -52,6 +53,12 @@ export class AuthObjectMapper {
     };
   }
 
+  public static base64ToJSON(base64: string){
+
+    const transformedToString = atob(base64);
+    return JSON.parse(transformedToString);
+  }
+
   public static transformAuthResult(credential: any, username: string) {
 
     const transformedObj = {
@@ -60,7 +67,7 @@ export class AuthObjectMapper {
       response: {
         authenticatorData: AuthObjectMapper.uint8arrayToBase64url(credential.response.authenticatorData),
         clientDataJSON: AuthObjectMapper.uint8arrayToBase64url(credential.response.clientDataJSON),
-        signature: "test", //AuthObjectMapper.uint8arrayToBase64url(credential.response.signature),
+        signature: AuthObjectMapper.uint8arrayToBase64url(credential.response.signature),
         userHandle: credential.response.userHandle && AuthObjectMapper.uint8arrayToBase64url(credential.response.userHandle),
       },
       clientExtensionResults: credential.getClientExtensionResults(),
@@ -73,12 +80,12 @@ export class AuthObjectMapper {
   }
 
 
-  private static base64urlToUint8array(base64Bytes: any) {
+  public static base64urlToUint8array(base64Bytes: any) {
     const padding = '===='.substring(0, (4 - (base64Bytes.length % 4)) % 4);
     return base64js.toByteArray((base64Bytes + padding).replace(/\//g, "_").replace(/\+/g, "-"));
   }
 
-  private static uint8arrayToBase64url(bytes: any): string {
+  public static uint8arrayToBase64url(bytes: any): string {
     if (bytes instanceof Uint8Array) {
       return base64js.fromByteArray(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
     } else {

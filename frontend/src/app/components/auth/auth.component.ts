@@ -22,6 +22,7 @@ export class AuthComponent {
 
   public formGroup;
   public isLoading: boolean = false;
+  public isLoginMode = true;
   public error = {isError: false, msg: ""};
   toastRef!: NxMessageToastRef;
 
@@ -57,28 +58,27 @@ export class AuthComponent {
 
     }
 
-    this.toastRef = this.messageToastService.open(
-      "Operation failed", {
-        ...config,
-        // @ts-ignore
-        context: "error"
-      }
-    );
-
   }
 
-  public initLogin() {
+  public initAuth() {
+    this.error.isError = false;
+    this.isLoginMode ? this.initLogin() : this.initRegistration();
+  }
+
+  private initLogin() {
+    console.log("LOGIN INIT:")
     const username = this.formGroup.controls.username?.value;
     this.validateInput();
     if (!this.formGroup.valid || !username) {
       return;
     }
+
     this.authService.authenticateUser(username)
       .subscribe(res => this.onSuccess(res), (err) => this.handleError(err), () => {
       });
   }
 
-  public initRegistration() {
+  private initRegistration() {
     const username = this.formGroup.controls.username?.value;
     this.validateInput();
     console.log("validate");
@@ -86,16 +86,21 @@ export class AuthComponent {
       return;
     }
     this.authService.startRegisterCeremony(username)
-      .subscribe(this.onSuccess, this.handleError, () => {
-      });
+      .subscribe((opt) => this.onSuccess(opt),
+        (err) => this.handleError(err),
+        () => {
+        });
 
   }
 
   public onSuccess(options: CompletionApiResult) {
-    this.toastRef = this.messageToastService.open(
-      options?.msg ?? "Success", config
-    );
+
     this.router.navigateByUrl("/home");
+  }
+
+  public handleModeSwitch() {
+    this.isLoginMode = !this.isLoginMode;
+    this.error.isError = false
   }
 
 

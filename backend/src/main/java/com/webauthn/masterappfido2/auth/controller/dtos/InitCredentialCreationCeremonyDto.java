@@ -13,8 +13,4 @@ public class InitRegistrationCeremonyDto {
     @NotBlank
     String username;
 
-    @NotNull
-    @NotBlank
-    String displayName;
-
 }
