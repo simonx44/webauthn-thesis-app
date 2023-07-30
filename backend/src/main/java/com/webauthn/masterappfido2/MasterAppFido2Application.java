@@ -7,6 +7,9 @@ import com.yubico.webauthn.data.RelyingPartyIdentity;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
 public class MasterAppFido2Application {
@@ -16,7 +19,7 @@ public class MasterAppFido2Application {
 	}
 
 	@Bean
-	public RelyingParty relyingParty(RegistrationService registrationService,
+	public RelyingParty relyingParty(@Lazy RegistrationService registrationService,
 									 WebAuthNProperties properties) {
 		RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
 				.id(properties.getHostName())
@@ -29,5 +32,7 @@ public class MasterAppFido2Application {
 				.origins(properties.getOrigin())
 				.build();
 	}
+
+
 
 }

@@ -1,7 +1,7 @@
 package com.webauthn.masterappfido2.auth.service;
 
-import com.webauthn.masterappfido2.auth.controller.dtos.CompleteRegistrationDto;
-import com.webauthn.masterappfido2.auth.controller.dtos.InitRegistrationCeremonyDto;
+import com.webauthn.masterappfido2.auth.controller.dtos.CompleteCredentialCreationCeremonyDto;
+import com.webauthn.masterappfido2.auth.controller.dtos.InitCredentialCreationCeremonyDto;
 import com.webauthn.masterappfido2.auth.data.authenticator.Authenticator;
 import com.webauthn.masterappfido2.auth.data.authenticator.AuthenticatorRepository;
 import com.webauthn.masterappfido2.auth.data.user.User;
@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 @Repository
 public class RegistrationService implements CredentialRepository {
 
+
     @Autowired
     private UserRepository userRepository;
 
@@ -35,56 +36,76 @@ public class RegistrationService implements CredentialRepository {
     private RelyingParty relyingParty;
 
 
-    public PublicKeyCredentialCreationOptions initRegistrationCeremony(InitRegistrationCeremonyDto userData) throws UserRegistrationException {
+    public PublicKeyCredentialCreationOptions initRegistrationCeremony(InitCredentialCreationCeremonyDto userData) throws UserRegistrationException {
 
         // check if user is already signed up
-        var user =  userRepository.findByUsername(userData.getUsername());
-        if(user.isPresent()){
-            var msg = String.format("The user with the id %s is already registered", userData.getUsername());
-            throw new UserRegistrationException(msg);
-        }
-        // Create user
-        UserIdentity userIdentity = UserIdentity.builder()
-                    .name(userData.getUsername())
-                    .displayName(userData.getDisplayName())
+        User user = null;
+        var userOptional = userRepository.findByUsername(userData.getName());
+
+        if (userOptional.isPresent()) {
+            user = userOptional.get();
+            // If user is present, check if user has already registered an authenticator
+            List<Authenticator> authenticators = authRepository.findAllByUser(user);
+            if (authenticators.size() > 0) {
+                var msg = String.format("The user with the id %s is already registered", userData.getName());
+                throw new UserRegistrationException(msg);
+            }
+        } else {
+            // Create user
+            UserIdentity userIdentity = UserIdentity.builder()
+                    .name(userData.getName())
+                    .displayName(userData.getName())
                     .id(generateRandom(32))
                     .build();
-
-        User saveUser = new User(userIdentity);
-        userRepository.save(saveUser);
-        return createRegistrationOptions(saveUser);
+            User saveUser = new User(userIdentity);
+            userRepository.save(saveUser);
+            user = saveUser;
+            user.setDisplayedName("Passkey " + userData.getName());
+        }
+        return createRegistrationOptions(user);
 
     }
-
 
 
     private PublicKeyCredentialCreationOptions createRegistrationOptions(
             User user
     ) {
+
+        var authSelectionCriteria = AuthenticatorSelectionCriteria.builder()
+                .residentKey(ResidentKeyRequirement.REQUIRED)
+                .userVerification(UserVerificationRequirement.REQUIRED)
+                .authenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
+                .build();
+
         UserIdentity userIdentity = user.transformToUserIdentity();
         StartRegistrationOptions registrationOptions = StartRegistrationOptions.builder()
                 .user(userIdentity)
+                .timeout(30000)
+                .authenticatorSelection(authSelectionCriteria)
                 .build();
         return relyingParty.startRegistration(registrationOptions);
     }
 
-    public void completeRegistration(CompleteRegistrationDto data, PublicKeyCredentialCreationOptions requestOptions) throws UserRegistrationException {
+    public void completeRegistration(CompleteCredentialCreationCeremonyDto data, PublicKeyCredentialCreationOptions requestOptions) throws UserRegistrationException {
 
         try {
-            Optional<User> user = userRepository.findByUsername(data.getUsername());
+            Optional<User> user = userRepository.findByUsername(requestOptions.getUser().getName());
 
-            if(user.isEmpty())
+            if (user.isEmpty())
                 throw new UserRegistrationException("Not found");
 
 
-           var pkc = PublicKeyCredential.parseRegistrationResponseJson(data.getCredential());
+            var pkc = PublicKeyCredential.parseRegistrationResponseJson(data.getCredential());
 
             FinishRegistrationOptions options = FinishRegistrationOptions.builder()
                     .request(requestOptions)
                     .response(pkc)
                     .build();
             RegistrationResult result = relyingParty.finishRegistration(options);
-            Authenticator savedAuth = new Authenticator(result, pkc.getResponse(), user.get(), data.getCredentialName());
+
+            var displayedName = requestOptions.getUser().getDisplayName();
+
+            Authenticator savedAuth = new Authenticator(result, pkc.getResponse(), user.get(), displayedName);
             authRepository.save(savedAuth);
         } catch (IOException e) {
             throw new UserRegistrationException("Fehler");
@@ -95,6 +116,28 @@ public class RegistrationService implements CredentialRepository {
     }
 
 
+    public PublicKeyCredentialCreationOptions addAdditionalPasskey(String credentialName, String username) throws Exception {
+
+        User user = null;
+        var userOptional = userRepository.findByUsername(username);
+
+        if (userOptional.isEmpty())
+            throw new Exception("User does not exist");
+
+        user = userOptional.get();
+
+        // If user is present, check if user has already registered an authenticator
+        List<Authenticator> authenticators = authRepository.findAllByUser(user);
+
+        if (authenticators.stream().anyMatch(authenticator -> authenticator.getName() == credentialName))
+            throw new Error("Passkey does already exist");
+
+        user.setDisplayedName(credentialName);
+
+        return createRegistrationOptions(user);
+
+
+    }
 
     private ByteArray generateRandom(int length) {
         SecureRandom random = new SecureRandom();
@@ -107,6 +150,7 @@ public class RegistrationService implements CredentialRepository {
     /**
      * Vor der Registierung eines neuen Authenticators genutzt
      * Sämtliche regististrierten Geräte werden an Nutzer gegben
+     *
      * @param username
      * @return
      */
@@ -118,25 +162,27 @@ public class RegistrationService implements CredentialRepository {
         return auth.stream()
                 .map(credential ->
                         PublicKeyCredentialDescriptor.builder()
-                                .id(credential.getCredentialId())
+                                .id(new ByteArray(credential.getCredentialId()))
                                 .build())
                 .collect(Collectors.toSet());
     }
 
     /**
      * Über einen usernamen wird die eindeutige UserId beschafft
-     *  Wird für im Browser benötigt: navigator.credential.get()
+     * Wird für im Browser benötigt: navigator.credential.get()
+     *
      * @param username
      * @return
      */
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
         var user = userRepository.findByUsername(username);
-        return Optional.of(user.get().getHandle());
+        return Optional.of(new ByteArray(user.get().getHandle()));
     }
 
     /**
      * Anmeldung ohne Nutzernamen
+     *
      * @param userHandle
      * @return
      */
@@ -155,12 +201,13 @@ public class RegistrationService implements CredentialRepository {
      */
     @Override
     public Optional<RegisteredCredential> lookup(ByteArray credentialId, ByteArray userHandle) {
-        Optional<Authenticator> auth = authRepository.findByCredentialId(credentialId);
+
+        Optional<Authenticator> auth = authRepository.findByCredentialId(credentialId.getBytes());
         return auth.map(credential ->
                 RegisteredCredential.builder()
-                        .credentialId(credential.getCredentialId())
-                        .userHandle(credential.getUser().getHandle())
-                        .publicKeyCose(credential.getPublicKey())
+                        .credentialId(new ByteArray(credential.getCredentialId()))
+                        .userHandle(new ByteArray(credential.getUser().getHandle()))
+                        .publicKeyCose(new ByteArray(credential.getPublicKey()))
                         .signatureCount(credential.getCount())
                         .build()
         );
@@ -171,13 +218,14 @@ public class RegistrationService implements CredentialRepository {
      */
     @Override
     public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
-        List<Authenticator> auth = authRepository.findAllByCredentialId(credentialId);
+        var credentialIdBytes = credentialId.getBytes();
+        List<Authenticator> auth = authRepository.findAllByCredentialId(credentialIdBytes);
         return auth.stream()
                 .map(credential ->
                         RegisteredCredential.builder()
-                                .credentialId(credential.getCredentialId())
-                                .userHandle(credential.getUser().getHandle())
-                                .publicKeyCose(credential.getPublicKey())
+                                .credentialId(new ByteArray(credential.getCredentialId()))
+                                .userHandle(new ByteArray(credential.getUser().getHandle()))
+                                .publicKeyCose(new ByteArray(credential.getPublicKey()))
                                 .signatureCount(credential.getCount())
                                 .build())
                 .collect(Collectors.toSet());

@@ -10,8 +10,8 @@ import java.util.Optional;
 
 public interface AuthenticatorRepository extends CrudRepository<Authenticator, Long> {
 
-    Optional<Authenticator> findByCredentialId(ByteArray credentialId);
+    Optional<Authenticator> findByCredentialId(byte[] credentialId);
     List<Authenticator> findAllByUser (User user);
-    List<Authenticator> findAllByCredentialId(ByteArray credentialId);
+    List<Authenticator> findAllByCredentialId(byte[] credentialId);
 
 }

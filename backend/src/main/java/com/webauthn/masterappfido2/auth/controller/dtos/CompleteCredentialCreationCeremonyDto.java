@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CompleteRegistrationDto {
+public class CompleteCredentialCreationCeremonyDto {
 
 
     @NotNull
@@ -16,5 +16,7 @@ public class CompleteRegistrationDto {
     @NotNull
     @NotBlank
     String name;
+
+    String credentialName;
 
 }

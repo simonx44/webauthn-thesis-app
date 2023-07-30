@@ -7,10 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class InitRegistrationCeremonyDto {
+public class InitCredentialCreationCeremonyDto {
 
     @NotNull
     @NotBlank
-    String username;
+    String name;
 
 }
