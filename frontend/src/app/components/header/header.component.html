@@ -1,35 +1,46 @@
 <header nx-header>
-  <nx-header-brand>
+    <nx-header-brand>
 
-      <div class="flex flex-row justify-center items-center">
-        <figure nxFigure>
-          <img
-            class="headerIcon"
-            src="../../../assets/fingerprintIcon.svg"
-            alt="Brand Logo"
-            role="none"
-          />
-        </figure>
-        <span class="logo-text">FIDO2 Prototype</span>
-      </div>
+        <div class="flex flex-row justify-center items-center">
+            <figure nxFigure>
+                <img
+                        class="headerIcon"
+                        src="../../../assets/fingerprintIcon.svg"
+                        alt="Brand Logo"
+                        role="none"
+                />
+            </figure>
+            <span class="logo-text">FIDO2 Prototype</span>
+        </div>
 
-  </nx-header-brand>
+    </nx-header-brand>
 
-  <nx-header-navigation>
-    <nx-header-navigation-item>
-      <a
-        routerLink="./"
-        [routerLinkActiveOptions]="{exact: true}"
-        routerLinkActive="is-active"
-        [skipLocationChange]="true"
-        nxHeaderLink
-      >Home</a
-      >
-    </nx-header-navigation-item>
+    <nx-header-navigation>
+        <nx-header-navigation-item *ngIf="userService.isUserLoggedIn">
+            <a
+                    routerLink="./home"
+                    [routerLinkActiveOptions]="{exact: true}"
+                    routerLinkActive="is-active"
+                    [skipLocationChange]="true"
+                    nxHeaderLink
+            >Home</a
+            >
+        </nx-header-navigation-item>
 
-  </nx-header-navigation>
+            <nx-header-navigation-item *ngIf="userService.isUserLoggedIn">
+                <a
+                        routerLink="./transaction"
+                        [routerLinkActiveOptions]="{exact: true}"
+                        routerLinkActive="is-active"
+                        [skipLocationChange]="true"
+                        nxHeaderLink
+                >Transaction</a>
+            </nx-header-navigation-item>
 
-  <nx-header-actions>
-    <button nxButton="secondary small" type="button">Login</button>
-  </nx-header-actions>
+    </nx-header-navigation>
+
+    <nx-header-actions>
+        <button *ngIf="userService.isUserLoggedIn" nxButton="secondary small" type="button" (click)="logout()">Logout
+        </button>
+    </nx-header-actions>
 </header>

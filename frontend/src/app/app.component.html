@@ -1,8 +1,11 @@
 <div class="min-h-[90vh] flex flex-col">
   <app-header></app-header>
-  <div class="mb-[200px]">
+  <div class="mb-[200px]" *ngIf="!isLoading; else loadingBlock">
     <router-outlet></router-outlet>
   </div>
+  <ng-template #loadingBlock>
+    Loading
+  </ng-template>
 
 </div>
 

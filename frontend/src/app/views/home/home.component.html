@@ -28,7 +28,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 2xl::grid-cols-6 gap-4">
 
 
-      <app-passkey *ngFor="let key of authenticators" [data]="key"
+      <app-passkey *ngFor="let key of authenticators" [data]="key" (deletePasskeyEvent)="confirm($event)"
                    [deleteable]="authenticators.length != 1"></app-passkey>
 
 
@@ -74,3 +74,26 @@
 
 </ng-template>
 
+<ng-template #deleteConfirmationTemplate>
+  <div class="centered-content w-full">
+    <h3 class="nx-modal-margin-bottom" nxHeadline="subsection-medium">
+      Remove passkey
+    </h3>
+    <p class="nx-modal-margin-bottom" nxCopytext="small">
+      Do you really want to delete this passkey?
+    </p>
+
+    <div class="flex flex-row justify-center items-center">
+      <button
+        (click)="closeConfirmationModal()"
+        class="nx-margin-right-s"
+        nxButton="secondary">
+        Cancel
+      </button>
+      <button
+        (click)="onConfirmFunction?.()" nxButton>Delete
+      </button>
+    </div>
+  </div>
+
+</ng-template>

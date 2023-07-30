@@ -41,13 +41,14 @@ export class AuthObjectMapper {
   }
 
   public static transformCredentialRequestOptions(options: any): CredentialRequestOptions {
+    console.log(options)
     return {
       publicKey: {
         ...options.publicKey,
         challenge: AuthObjectMapper.base64urlToUint8array(options.publicKey.challenge),
         allowCredentials: options?.publicKey.allowCredentials.map((cred: any) => ({
           type: cred.type,
-          id: AuthObjectMapper.base64urlToUint8array(cred.id)
+          id: AuthObjectMapper.base64urlToUint8array(cred.id),
         }))
       }
     };

@@ -12,7 +12,11 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
 export class HomeComponent implements OnInit {
   public formGroup;
   @ViewChild('template') templateRef!: TemplateRef<any>;
+  @ViewChild('deleteConfirmationTemplate') deleteConfirmationRef!: TemplateRef<any>;
   templateDialogRef?: NxModalRef<any>;
+  confirmationDialogRef?: NxModalRef<any>;
+
+  onConfirmFunction: (() => void) | undefined;
 
   public httpRequest = {isLoading: false, isError: false};
   public authenticators: Array<any>;
@@ -30,7 +34,7 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.getUserData();
 
-   // navigator.credentials.
+    // navigator.credentials.
   }
 
   private validateInput() {
@@ -76,6 +80,7 @@ export class HomeComponent implements OnInit {
     this.authService.startAddCredentialCeremony(passkeyName)
       .subscribe(() => {
           console.log("success")
+          this.getUserData();
         },
         () => {
           console.log("errror");
@@ -91,6 +96,28 @@ export class HomeComponent implements OnInit {
   closeModal() {
 
     this.templateDialogRef?.close();
+  }
+
+  closeConfirmationModal(){
+    this.confirmationDialogRef?.close();
+  }
+
+  public confirm(id: number){
+    this.confirmationDialogRef = this.dialogService.open(this.deleteConfirmationRef, {
+      ariaLabel: 'A simple dialog',
+    });
+    this.onConfirmFunction = () => this.deletePasskey(id);
+
+  }
+
+  deletePasskey(id: number) {
+    this.closeConfirmationModal();
+    this.authenticators = this.authenticators.filter(it => it.id != id);
+    this.authService.deleteAuthenticator(id).subscribe(() => {
+      console.log("success")
+    }, () => console.log("err"))
+
+
   }
 
 

@@ -3,6 +3,8 @@ import {HttpClient} from '@angular/common/http';
 import {CompletionApiResult, InitCredentialCreateCeremonyDto} from "../types";
 import {concatMap, from, map, Observable} from "rxjs";
 import {AuthObjectMapper} from "./AuthObjectMapper";
+import {UserService} from "./user.service";
+import {Router} from "@angular/router";
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +15,7 @@ export class WebauthnService {
 
   private static readonly DEFAULT_HEADERS = {withCredentials: true};
 
-  constructor(private client: HttpClient) {
+  constructor(private client: HttpClient, private userService: UserService) {
   }
 
   /**
@@ -116,6 +118,36 @@ export class WebauthnService {
         map(res => res.map((item: any) => ({...item, attestationObject: JSON.parse(item.parsedAttestationObject)}))));
 
   }
+
+  public deleteAuthenticator(id: number) {
+    const url = `${WebauthnService.BASE_URL}/auth/authenticator/${id}`;
+
+    return this.client.delete<any>(url, WebauthnService.DEFAULT_HEADERS);
+
+  }
+
+  public confirmTransaction(moneyToTransfer: number) {
+    const url = `${WebauthnService.BASE_URL}/auth/transaction/init`;
+
+    return this.client.post<any>(url, null, WebauthnService.DEFAULT_HEADERS)
+      .pipe(
+        map(AuthObjectMapper.transformCredentialRequestOptions),
+        concatMap(options => {
+          const authResult = navigator.credentials.get(options);
+          return from(authResult)
+            .pipe(
+              map(cred => AuthObjectMapper.transformAuthResult(cred, "not_used_here")),
+              concatMap(res => {
+                const url = `${WebauthnService.BASE_URL}/auth/transaction/complete`;
+                return this.client.post(url, res, WebauthnService.DEFAULT_HEADERS)
+              })
+            );
+        }));
+
+  }
+
+
+
 
 
 }

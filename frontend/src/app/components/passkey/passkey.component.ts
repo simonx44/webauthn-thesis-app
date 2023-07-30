@@ -1,5 +1,5 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {PasskeyT} from "../types";
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {PasskeyT} from "../../types";
 
 @Component({
   selector: 'app-passkey',
@@ -10,6 +10,8 @@ export class PasskeyComponent implements OnInit {
 
   @Input() deleteable: boolean = false;
   @Input() data: PasskeyT | undefined;
+
+  @Output() deletePasskeyEvent = new EventEmitter<number>();
 
   currentIndex = 0;
 
@@ -36,7 +38,7 @@ export class PasskeyComponent implements OnInit {
 
 
   public deletePasskey() {
-
+    this.deletePasskeyEvent.emit(this.data?.id);
   }
 
 

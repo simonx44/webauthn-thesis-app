@@ -26,19 +26,22 @@ import {NxAccordionModule} from '@aposin/ng-aquila/accordion';
 import {AppComponent} from './app.component';
 import {NxHeaderModule} from "@aposin/ng-aquila/header";
 import {HeaderComponent} from './components/header/header.component';
-import {AuthComponent} from './components/auth/auth.component';
+import {AuthComponent} from './views/auth/auth.component';
 import {AppRoutingModule} from "./app-routing.module";
 import {NxSpinnerModule} from "@aposin/ng-aquila/spinner";
-import {HomeComponent} from './components/home/home.component';
+import {HomeComponent} from './views/home/home.component';
 import {NxCardModule} from '@aposin/ng-aquila/card';
 import {
   AuthCreateResultParserComponent
 } from './components/auth-create-result-parser/auth-create-result-parser.component';
-import {PasskeyComponent} from './passkey/passkey.component';
+import {PasskeyComponent} from './components/passkey/passkey.component';
 import {NxTabsModule} from '@aposin/ng-aquila/tabs';
+import { TransactionStubComponent } from './views/transaction-stub/transaction-stub.component';
+import { NxNumberStepperModule } from '@aposin/ng-aquila/number-stepper';
+
 
 @NgModule({
-  declarations: [AppComponent,  HeaderComponent, AuthComponent, HomeComponent, AuthCreateResultParserComponent, PasskeyComponent],
+  declarations: [AppComponent,  HeaderComponent, AuthComponent, HomeComponent, AuthCreateResultParserComponent, PasskeyComponent, TransactionStubComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -52,6 +55,7 @@ import {NxTabsModule} from '@aposin/ng-aquila/tabs';
     NxCheckboxModule,
     NxDocumentationIconModule,
     NxDropdownModule,
+    NxNumberStepperModule,
     NxFooterModule,
     NxFormfieldModule,
     NxGridModule,

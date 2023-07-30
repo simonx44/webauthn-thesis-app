@@ -1,0 +1,51 @@
+<div *ngIf="!response; else resultBlock" class="flex flex-col justify-center items-center h-[80vh]">
+
+  <div class="align-top my-10">
+    <nx-message context="warning">
+      <span class="nx-font-weight-bold">TXAUTHSIMPLE:</span><br/>
+      WebAuthN Extension txAuthSimple is not supported and will be removed from the spec
+    </nx-message>
+  </div>
+
+  <nx-number-stepper
+    size="big"
+    resize="true"
+    leadingZero="false"
+    inputAriaLabel="Sum of Expenses"
+    [(ngModel)]="moneyToTransfer">
+    <nx-number-stepper-prefix>€</nx-number-stepper-prefix>
+    <label>Transfer money to bank account</label>
+  </nx-number-stepper>
+
+  <button nxButton="primary" class="deleteBtn mt-5" type="button" [disabled]="moneyToTransfer === 0"
+          (click)="confirmTransaction()"
+  >
+    Confirm transaction
+  </button>
+
+
+</div>
+
+<ng-template #resultBlock>
+
+  <div class="flex flex-col justify-center items-center h-[80vh]">
+
+    <div *ngIf="response?.transactionAuthorized; else notAuth" class="flex flex-col justify-center items-center">
+      <nx-icon name="check" size="xl" class="text-blue-600"></nx-icon>
+      <span>The transaction was successfully authorized</span>
+    </div>
+    <ng-template #notAuth>
+      <div class="flex flex-col justify-center items-center">
+        <nx-icon name="close" size="xl" class="text-red-800"></nx-icon>
+        <span>The transaction was not authorized</span>
+        <button nxButton="primary" class="deleteBtn mt-5" type="button" [disabled]="moneyToTransfer === 0"
+                (click)="response = undefined"
+        >
+          Try again
+        </button>
+
+      </div>
+    </ng-template>
+
+  </div>
+</ng-template>
