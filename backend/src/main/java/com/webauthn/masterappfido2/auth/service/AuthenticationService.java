@@ -1,8 +1,10 @@
 package com.webauthn.masterappfido2.auth.service;
 
 import com.webauthn.masterappfido2.auth.controller.dtos.CompleteAuthDto;
+import com.webauthn.masterappfido2.auth.data.ValidationResponseDTO;
 import com.webauthn.masterappfido2.auth.data.authenticator.Authenticator;
 import com.webauthn.masterappfido2.auth.data.authenticator.AuthenticatorRepository;
+import com.webauthn.masterappfido2.auth.data.user.UserRepository;
 import com.yubico.webauthn.*;
 import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
 import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public class AuthService {
+public class AuthenticationService {
 
     @Autowired
     private RelyingParty relyingParty;
@@ -21,11 +23,24 @@ public class AuthService {
     @Autowired
     private AuthenticatorRepository authenticatorRepository;
 
+    @Autowired
+    private CredentialService credentialService;
+
     public AssertionRequest generateAuthRequest(String username) {
 
         AssertionRequest request = relyingParty.startAssertion(StartAssertionOptions.builder()
                 .username(username)
-                .userVerification(UserVerificationRequirement.REQUIRED)
+                .userVerification(UserVerificationRequirement.PREFERRED)
+                .build());
+
+        return request;
+
+    }
+
+    public AssertionRequest generateMediationAuthRequest() {
+
+        AssertionRequest request = relyingParty.startAssertion(StartAssertionOptions.builder()
+                .userVerification(UserVerificationRequirement.PREFERRED)
                 .build());
 
         return request;
@@ -33,7 +48,7 @@ public class AuthService {
     }
 
 
-    public boolean validateClientAuthResponse(CompleteAuthDto data, AssertionRequest assertionRequest) {
+    public ValidationResponseDTO validateClientAuthResponse(CompleteAuthDto data, AssertionRequest assertionRequest) {
 
         try {
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc;
@@ -49,7 +64,9 @@ public class AuthService {
             }
             updateCredential(result);
 
-            return true;
+            var username = this.credentialService.getUsernameForUserHandle(pkc.getResponse().getUserHandle().orElseThrow());
+
+            return new ValidationResponseDTO(true, username.orElseThrow());
 
         } catch (Exception e) {
             throw new RuntimeException("Authentication failed", e);

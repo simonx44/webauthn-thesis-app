@@ -6,144 +6,187 @@ import {NxMessageToastConfig, NxMessageToastRef, NxMessageToastService} from "@a
 import {CompletionApiResult} from "../../types";
 import {Router} from "@angular/router";
 import {UserService} from "../../service/user.service";
+import AbortError from "../../errors/AbortError";
+
 
 const config: NxMessageToastConfig = {
-    duration: 2500,
-    context: 'success',
-    announcementMessage: "Info",
-    politeness: "polite"
+  duration: 2500,
+  context: 'success',
+  announcementMessage: "Info",
+  politeness: "polite"
 }
 
 @Component({
-    selector: 'app-auth',
-    templateUrl: './auth.component.html',
-    styleUrls: ['./auth.component.scss']
+  selector: 'app-auth',
+  templateUrl: './auth.component.html',
+  styleUrls: ['./auth.component.scss']
 })
 export class AuthComponent implements OnInit {
 
-    public formGroup;
-    public autoFillMode: boolean = true;
-    public isLoading: boolean = false;
-    public isLoginMode = true;
-    public error = {isError: false, msg: ""};
-    toastRef!: NxMessageToastRef;
+  public abortController: AbortController | undefined;
 
-    constructor(private authService: WebauthnService,
-                private readonly messageToastService: NxMessageToastService,
-                private router: Router
-        , private userService: UserService) {
-        this.formGroup = new FormGroup({
-            username: new FormControl("", [
-                Validators.required,
-                Validators.minLength(4),
-            ]),
-        });
+  public formGroup;
+  public autoFillMode: boolean = true;
+  public usernamelessFlow: { fetching: boolean, options?: CredentialRequestOptions } = {
+    fetching: false,
+    options: undefined
+  };
+  public isLoading: boolean = false;
+  public isLoginMode = true;
+  public error = {isError: false, msg: ""};
+  toastRef!: NxMessageToastRef;
+
+  constructor(private authService: WebauthnService,
+              private readonly messageToastService: NxMessageToastService,
+              private router: Router
+    , private userService: UserService) {
+    this.formGroup = new FormGroup({
+      username: new FormControl("", [
+        Validators.required,
+        Validators.minLength(4),
+      ]),
+    });
+  }
+
+  ngOnInit(): void {
+
+    this.initComponent();
+
+  }
+
+  async mediationAvailable() {
+    const pubKeyCred = PublicKeyCredential;
+    // Check if the function exists on the browser - Not safe to assume as the page will crash if the function is not available
+    //typeof check is used as browsers that do not support mediation will not have the 'isConditionalMediationAvailable' method available
+    if (
+      typeof pubKeyCred.isConditionalMediationAvailable === "function" &&
+      await pubKeyCred.isConditionalMediationAvailable()
+    ) {
+      console.log("Conditional Mediation is available");
+      return true;
+    }
+    console.log("Conditional Mediation is not available");
+    return false;
+  };
+
+
+  private async initComponent() {
+    if (await this.mediationAvailable()) {
+      this.autoFillMode = true;
+      this.initUsernamelessFlow();
+    } else {
+      this.autoFillMode = false;
     }
 
-    ngOnInit(): void {
+  }
 
-        this.initComponent();
+  private validateInput() {
+    this.formGroup.controls['username'].markAsTouched();
+  }
 
-    }
+  public initUsernamelessFlow() {
+    this.createAbortController();
+    this.authService.initAutofillAuthentication().subscribe((res) => {
+      console.log("rest")
+      this.onSuccess(res)
+    }, (err) => {
+      this.handleError(err);
+    })
+  }
 
-    async mediationAvailable() {
-        const pubKeyCred = PublicKeyCredential;
-        // Check if the function exists on the browser - Not safe to assume as the page will crash if the function is not available
-        //typeof check is used as browsers that do not support mediation will not have the 'isConditionalMediationAvailable' method available
-        if (
-            typeof pubKeyCred.isConditionalMediationAvailable === "function" &&
-            await pubKeyCred.isConditionalMediationAvailable()
-        ) {
-            console.log("Conditional Mediation is available");
-            return true;
-        }
-        console.log("Conditional Mediation is not available");
-        return false;
+  private createAbortController() {
+    this.abortController = new AbortController();
+    const authAbortSignal = this.abortController.signal;
+    authAbortSignal.onabort = () => {
+      console.log("Abort");
     };
+    this.authService.abortSignal = authAbortSignal;
+
+  }
 
 
-    private async initComponent() {
-        if (await this.mediationAvailable()) {
-            this.autoFillMode = true;
-        } else {
-            this.autoFillMode = false;
-        }
+  public usernamelessLogin() {
+    this.abortController?.abort(new AbortError("Abort prev request"));
+    this.authService.authenticateUsernameLess().subscribe((res) => {
+      this.onSuccess(res)
+    }, (err) => {
+      this.handleError(err)
+    })
+  }
 
 
-    }
+  private handleError(error: Error) {
 
-    private validateInput() {
-        this.formGroup.controls['username'].markAsTouched();
-    }
+    if (error instanceof AbortError) {
+      console.log("Request was aborted")
 
+      return;
 
-    private handleError(error: HttpErrorResponse) {
-
+    } else if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) {
+        // A client-side or network error occurred. Handle it accordingly.
+        this.error = {isError: true, msg: error.message};
+      } else {
         console.log(error)
-        if (error.status === 0) {
-            // A client-side or network error occurred. Handle it accordingly.
-            this.error = {isError: true, msg: error.message};
-        } else {
-            console.log(error)
-            // The backend returned an unsuccessful response code.
-            console.log(
-                `Backend returned code ${error.status}, body was: `, error.error);
+        // The backend returned an unsuccessful response code.
+        console.log(
+          `Backend returned code ${error.status}, body was: `, error.error);
 
-            this.error = {isError: true, msg: error.message};
-
-        }
-
+        this.error = {isError: true, msg: error.message};
+      }
     }
+    this.initUsernamelessFlow();
+  }
 
-    public initAuth() {
-        this.error.isError = false;
-        this.isLoginMode ? this.initLogin() : this.initRegistration();
+  public initAuth() {
+    this.error.isError = false;
+    this.isLoginMode ? this.initLogin() : this.initRegistration();
+  }
+
+  private initLogin() {
+    console.log("LOGIN INIT:")
+    const username = this.formGroup.controls.username?.value;
+    this.validateInput();
+    if (!this.formGroup.valid || !username) {
+      return;
     }
+    this.abortController?.abort(new AbortError("Abort prev request"));
+    this.authService.authenticateUser(username)
+      .subscribe(res => this.onSuccess(res), (err) => this.handleError(err), () => {
+      });
+  }
 
-    private initLogin() {
-        console.log("LOGIN INIT:")
-        const username = this.formGroup.controls.username?.value;
-        this.validateInput();
-        if (!this.formGroup.valid || !username) {
-            return;
-        }
-
-        this.authService.authenticateUser(username)
-            .subscribe(res => this.onSuccess(res), (err) => this.handleError(err), () => {
-            });
+  private initRegistration() {
+    const username = this.formGroup.controls.username?.value;
+    this.validateInput();
+    console.log("validate");
+    if (!this.formGroup.valid || !username) {
+      return;
     }
+    this.authService.startRegisterCeremony(username)
+      .subscribe((opt) => this.onSuccess(opt),
+        (err) => this.handleError(err),
+        () => {
+        });
 
-    private initRegistration() {
-        const username = this.formGroup.controls.username?.value;
-        this.validateInput();
-        console.log("validate");
-        if (!this.formGroup.valid || !username) {
-            return;
-        }
-        this.authService.startRegisterCeremony(username)
-            .subscribe((opt) => this.onSuccess(opt),
-                (err) => this.handleError(err),
-                () => {
-                });
+  }
 
-    }
+  public onSuccess(options: CompletionApiResult) {
 
-    public onSuccess(options: CompletionApiResult) {
+    this.userService.isUserLoggedIn = true;
+    this.router.navigateByUrl("/home");
+  }
 
-        this.userService.isUserLoggedIn = true;
-        this.router.navigateByUrl("/home");
-    }
-
-    public handleModeSwitch() {
-        this.isLoginMode = !this.isLoginMode;
-        this.error.isError = false;
-        this.userService.isUserLoggedIn = false;
-    }
+  public handleModeSwitch() {
+    this.isLoginMode = !this.isLoginMode;
+    this.error.isError = false;
+    this.userService.isUserLoggedIn = false;
+  }
 
 
-    get username() {
-        return this.formGroup.get('username');
-    }
+  get username() {
+    return this.formGroup.get('username');
+  }
 
 
 }

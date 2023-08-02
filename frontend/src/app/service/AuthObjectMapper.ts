@@ -1,6 +1,8 @@
 import * as base64js from "base64-js";
 import {throwError} from "rxjs";
 
+export enum AuthTransformationType {STANDARD, CONDITIONAL, USERNAMELESS};
+
 export class AuthObjectMapper {
 
   public static transformToServerRegistrationCompleteObject(options: any, name: string) {
@@ -40,8 +42,29 @@ export class AuthObjectMapper {
     return createOptions;
   }
 
-  public static transformCredentialRequestOptions(options: any): CredentialRequestOptions {
-    console.log(options)
+  public static transformCredentialRequestOptions(options: any, type: AuthTransformationType, abortSignal?: AbortSignal): CredentialRequestOptions {
+    console.log(options);
+    console.log(type);
+
+    if (type === AuthTransformationType.CONDITIONAL) {
+      return {
+        mediation: "conditional",
+        signal: abortSignal,
+        publicKey: {
+          ...options.publicKey,
+          challenge: AuthObjectMapper.base64urlToUint8array(options.publicKey.challenge),
+        }
+      }
+
+    } else if (type === AuthTransformationType.USERNAMELESS) {
+      return {
+        publicKey: {
+          ...options.publicKey,
+          challenge: AuthObjectMapper.base64urlToUint8array(options.publicKey.challenge),
+        }
+      }
+    }
+
     return {
       publicKey: {
         ...options.publicKey,
@@ -54,7 +77,7 @@ export class AuthObjectMapper {
     };
   }
 
-  public static base64ToJSON(base64: string){
+  public static base64ToJSON(base64: string) {
 
     const transformedToString = atob(base64);
     return JSON.parse(transformedToString);

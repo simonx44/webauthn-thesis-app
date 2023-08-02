@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Repository
-public class RegistrationService implements CredentialRepository {
+public class RegistrationService {
 
 
     @Autowired
@@ -74,7 +74,6 @@ public class RegistrationService implements CredentialRepository {
         var authSelectionCriteria = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED)
                 .userVerification(UserVerificationRequirement.REQUIRED)
-                .authenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
                 .build();
 
         UserIdentity userIdentity = user.transformToUserIdentity();
@@ -139,6 +138,7 @@ public class RegistrationService implements CredentialRepository {
 
     }
 
+
     private ByteArray generateRandom(int length) {
         SecureRandom random = new SecureRandom();
         byte[] bytes = new byte[length];
@@ -146,89 +146,5 @@ public class RegistrationService implements CredentialRepository {
         return new ByteArray(bytes);
     }
 
-
-    /**
-     * Vor der Registierung eines neuen Authenticators genutzt
-     * Sämtliche regististrierten Geräte werden an Nutzer gegben
-     *
-     * @param username
-     * @return
-     */
-    @Override
-    public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
-        var user = userRepository.findByUsername(username);
-
-        List<Authenticator> auth = authRepository.findAllByUser(user.get());
-        return auth.stream()
-                .map(credential ->
-                        PublicKeyCredentialDescriptor.builder()
-                                .id(new ByteArray(credential.getCredentialId()))
-                                .build())
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * Über einen usernamen wird die eindeutige UserId beschafft
-     * Wird für im Browser benötigt: navigator.credential.get()
-     *
-     * @param username
-     * @return
-     */
-    @Override
-    public Optional<ByteArray> getUserHandleForUsername(String username) {
-        var user = userRepository.findByUsername(username);
-        return Optional.of(new ByteArray(user.get().getHandle()));
-    }
-
-    /**
-     * Anmeldung ohne Nutzernamen
-     *
-     * @param userHandle
-     * @return
-     */
-    @Override
-    public Optional<String> getUsernameForUserHandle(ByteArray userHandle) {
-        var user = userRepository.findByHandle(userHandle);
-        return Optional.of(user.get().getUsername());
-    }
-
-    /**
-     * Übernimmt die verifizierung
-     *
-     * @param credentialId
-     * @param userHandle
-     * @return
-     */
-    @Override
-    public Optional<RegisteredCredential> lookup(ByteArray credentialId, ByteArray userHandle) {
-
-        Optional<Authenticator> auth = authRepository.findByCredentialId(credentialId.getBytes());
-        return auth.map(credential ->
-                RegisteredCredential.builder()
-                        .credentialId(new ByteArray(credential.getCredentialId()))
-                        .userHandle(new ByteArray(credential.getUser().getHandle()))
-                        .publicKeyCose(new ByteArray(credential.getPublicKey()))
-                        .signatureCount(credential.getCount())
-                        .build()
-        );
-    }
-
-    /*
-    In a similar way, the lookupAll() function returns a set of RegisteredCredential objects. Instead of validating the authenticator’s signature, this function ensures that there aren’t multiple credentials registered with the same credential ID.
-     */
-    @Override
-    public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
-        var credentialIdBytes = credentialId.getBytes();
-        List<Authenticator> auth = authRepository.findAllByCredentialId(credentialIdBytes);
-        return auth.stream()
-                .map(credential ->
-                        RegisteredCredential.builder()
-                                .credentialId(new ByteArray(credential.getCredentialId()))
-                                .userHandle(new ByteArray(credential.getUser().getHandle()))
-                                .publicKeyCose(new ByteArray(credential.getPublicKey()))
-                                .signatureCount(credential.getCount())
-                                .build())
-                .collect(Collectors.toSet());
-    }
 
 }

@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends CrudRepository<User, Long> {
     Optional<User> findByUsername(String name);
-    Optional<User> findByHandle(ByteArray handle);
+    Optional<User> findByHandle(byte[] handle);
 }

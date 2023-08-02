@@ -2,9 +2,9 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {CompletionApiResult, InitCredentialCreateCeremonyDto} from "../types";
 import {concatMap, from, map, Observable} from "rxjs";
-import {AuthObjectMapper} from "./AuthObjectMapper";
+import {AuthObjectMapper, AuthTransformationType} from "./AuthObjectMapper";
 import {UserService} from "./user.service";
-import {Router} from "@angular/router";
+
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +14,9 @@ export class WebauthnService {
   private static readonly BASE_URL = "http://localhost:8080";
 
   private static readonly DEFAULT_HEADERS = {withCredentials: true};
+
+  private _abortSignal: AbortSignal | undefined;
+
 
   constructor(private client: HttpClient, private userService: UserService) {
   }
@@ -34,6 +37,10 @@ export class WebauthnService {
       .pipe(
         map(res => AuthObjectMapper.mapToCredentialCreationOption(res)),
         concatMap((options) => this.createAuthenticator(options, credentialName)));
+  }
+
+  set abortSignal(value: AbortSignal | undefined) {
+    this._abortSignal = value;
   }
 
 
@@ -83,7 +90,7 @@ export class WebauthnService {
     const url = `${WebauthnService.BASE_URL}/auth/login/init?username=${username}`;
     return this.client.post(url, null, WebauthnService.DEFAULT_HEADERS)
       .pipe(
-        map(AuthObjectMapper.transformCredentialRequestOptions),
+        map((opt) => AuthObjectMapper.transformCredentialRequestOptions(opt, AuthTransformationType.STANDARD)),
         concatMap(res => this.validateAuthenticator(res, username)));
   }
 
@@ -97,18 +104,43 @@ export class WebauthnService {
    * @param username
    * @private
    */
-  private validateAuthenticator(options: CredentialRequestOptions, username: string): Observable<any> {
+  public validateAuthenticator(options: CredentialRequestOptions, username: string): Observable<any> {
+
+    console.log("Validate")
+console.log(options);
     const authResult = navigator.credentials.get(options);
     return from(authResult)
       .pipe(
         map(cred => AuthObjectMapper.transformAuthResult(cred, username)),
         concatMap(res => {
-          const url = `${WebauthnService.BASE_URL}/auth/login/complete`;
+          const url = `${WebauthnService.BASE_URL}/auth/login/complete?usernameless=${username.length == 0}`;
+
           return this.client.post(url, res, WebauthnService.DEFAULT_HEADERS)
         })
       );
 
   }
+
+
+  public initAutofillAuthentication(): Observable<any> {
+    const url = `${WebauthnService.BASE_URL}/auth/login/autofill/init`;
+    return this.client.post(url, null, WebauthnService.DEFAULT_HEADERS)
+      .pipe(
+        map((res) => AuthObjectMapper.transformCredentialRequestOptions(res, AuthTransformationType.CONDITIONAL, this._abortSignal)
+        ), concatMap(res => this.validateAuthenticator(res, "")));
+
+  }
+
+  public authenticateUsernameLess(): Observable<any> {
+    const url = `${WebauthnService.BASE_URL}/auth/login/autofill/init`;
+    return this.client.post(url, null, WebauthnService.DEFAULT_HEADERS)
+      .pipe(
+        map((res) => AuthObjectMapper.transformCredentialRequestOptions(res, AuthTransformationType.USERNAMELESS)
+        ),
+        concatMap(res => this.validateAuthenticator(res, "")));
+
+  }
+
 
   public getUserAuthenticators() {
     const url = `${WebauthnService.BASE_URL}/auth/authenticator`;
@@ -131,7 +163,7 @@ export class WebauthnService {
 
     return this.client.post<any>(url, null, WebauthnService.DEFAULT_HEADERS)
       .pipe(
-        map(AuthObjectMapper.transformCredentialRequestOptions),
+        map((options) => AuthObjectMapper.transformCredentialRequestOptions(options, AuthTransformationType.STANDARD)),
         concatMap(options => {
           const authResult = navigator.credentials.get(options);
           return from(authResult)
@@ -145,9 +177,6 @@ export class WebauthnService {
         }));
 
   }
-
-
-
 
 
 }

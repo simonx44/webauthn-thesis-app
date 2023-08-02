@@ -5,8 +5,8 @@ import com.webauthn.masterappfido2.auth.controller.dtos.CompleteCredentialCreati
 import com.webauthn.masterappfido2.auth.controller.dtos.InitCredentialCreationCeremonyDto;
 import com.webauthn.masterappfido2.auth.data.authenticator.Authenticator;
 import com.webauthn.masterappfido2.auth.exception.UserRegistrationException;
-import com.webauthn.masterappfido2.auth.service.AuthService;
-import com.webauthn.masterappfido2.auth.service.AuthenticatorService;
+import com.webauthn.masterappfido2.auth.service.AuthenticationService;
+import com.webauthn.masterappfido2.auth.service.CredentialService;
 import com.webauthn.masterappfido2.auth.service.RegistrationService;
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
@@ -28,15 +28,15 @@ public class AuthController {
 
     private RegistrationService registrationService;
 
-    private AuthenticatorService authenticatorService;
+    private CredentialService credentialService;
 
-    private AuthService authService;
+    private AuthenticationService authService;
 
-    AuthController(RegistrationService service, AuthService authService, AuthenticatorService authenticatorService) {
+    AuthController(RegistrationService service, AuthenticationService authService, CredentialService credentialService) {
 
         this.registrationService = service;
         this.authService = authService;
-        this.authenticatorService = authenticatorService;
+        this.credentialService = credentialService;
     }
 
 
@@ -101,23 +101,36 @@ public class AuthController {
         return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
     }
 
+    @PostMapping("/login/autofill/init")
+    public ResponseEntity startMediationLogin(
+            HttpSession session
+    ) throws Exception {
+
+        var request = authService.generateMediationAuthRequest();
+        session.setAttribute("conditionalRequest", request);
+        var response = request.toCredentialsGetJson();
+        return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
+    }
+
     @PostMapping("/login/complete")
     public ResponseEntity completeLogin(
             @Valid @RequestBody CompleteAuthDto data,
+            @RequestParam boolean usernameless,
             HttpSession session
     ) {
-        AssertionRequest request = (AssertionRequest) session.getAttribute(data.getUsername());
-        boolean isLoginSuccessful = this.authService.validateClientAuthResponse(data, request);
+
+
+        String sessionAccessKey = !usernameless ? data.getUsername() : "conditionalRequest";
+
+        AssertionRequest request = (AssertionRequest) session.getAttribute(sessionAccessKey);
+        var authResponse = this.authService.validateClientAuthResponse(data, request);
         var res = new HashMap<String, String>();
-        if (isLoginSuccessful) {
-            {
-                {
-                    session.setAttribute(SESSION_ISUSERLOGGEDIN, true);
-                    session.setAttribute(SESSION_USERNAME, data.getUsername());
-                    res.put("msg", "Login successfully completed");
-                }
-            }
-            ;
+        if (authResponse.isAuthenticated()) {
+
+            session.setAttribute(SESSION_ISUSERLOGGEDIN, true);
+            session.setAttribute(SESSION_USERNAME, authResponse.username());
+            res.put("msg", "Login successfully completed");
+
             return new ResponseEntity<>(res, HttpStatus.OK);
         } else {
             res.put("msg", "Login failed");
@@ -137,7 +150,7 @@ public class AuthController {
 
         var userId = (String) session.getAttribute(SESSION_USERNAME);
 
-        List<Authenticator> list = authenticatorService.listAuthenticatorsByUser(userId);
+        List<Authenticator> list = credentialService.listAuthenticatorsByUser(userId);
 
         return new ResponseEntity<>(list, HttpStatus.OK);
 
@@ -152,7 +165,7 @@ public class AuthController {
         }
 
         var sessionUserName = (String) session.getAttribute(SESSION_USERNAME);
-        authenticatorService.deleteAuthenticator(id, sessionUserName);
+        credentialService.deleteAuthenticator(id, sessionUserName);
         return new ResponseEntity<>(null, HttpStatus.OK);
 
     }
@@ -241,10 +254,10 @@ public class AuthController {
         }
         var username = (String) session.getAttribute(SESSION_USERNAME);
         AssertionRequest request = (AssertionRequest) session.getAttribute(username);
-        boolean isTransactionSuccessful = this.authService.validateClientAuthResponse(data, request);
+        var authResponse = this.authService.validateClientAuthResponse(data, request);
 
         var res = new HashMap<String, String>();
-        if (isTransactionSuccessful) {
+        if (authResponse.isAuthenticated()) {
             res.put("msg", "Transaction successfully completed");
             return new ResponseEntity<>(res, HttpStatus.OK);
         } else {

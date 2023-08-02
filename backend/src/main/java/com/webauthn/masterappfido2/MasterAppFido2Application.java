@@ -1,6 +1,7 @@
 package com.webauthn.masterappfido2;
 
 import com.webauthn.masterappfido2.auth.config.WebAuthNProperties;
+import com.webauthn.masterappfido2.auth.service.CredentialService;
 import com.webauthn.masterappfido2.auth.service.RegistrationService;
 import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
@@ -14,25 +15,24 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 public class MasterAppFido2Application {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MasterAppFido2Application.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MasterAppFido2Application.class, args);
+    }
 
-	@Bean
-	public RelyingParty relyingParty(@Lazy RegistrationService registrationService,
-									 WebAuthNProperties properties) {
-		RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
-				.id(properties.getHostName())
-				.name(properties.getDisplay())
-				.build();
+    @Bean
+    public RelyingParty relyingParty(@Lazy CredentialService credentialService,
+                                     WebAuthNProperties properties) {
+        RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
+                .id(properties.getHostName())
+                .name(properties.getDisplay())
+                .build();
 
-		return RelyingParty.builder()
-				.identity(rpIdentity)
-				.credentialRepository(registrationService)
-				.origins(properties.getOrigin())
-				.build();
-	}
-
+        return RelyingParty.builder()
+                .identity(rpIdentity)
+                .credentialRepository(credentialService)
+                .origins(properties.getOrigin())
+                .build();
+    }
 
 
 }

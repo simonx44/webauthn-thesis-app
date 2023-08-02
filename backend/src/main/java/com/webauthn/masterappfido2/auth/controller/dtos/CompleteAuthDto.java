@@ -13,8 +13,6 @@ public class CompleteAuthDto {
     @NotBlank
     String credential;
 
-    @NotNull
-    @NotBlank
     String username;
 
 
