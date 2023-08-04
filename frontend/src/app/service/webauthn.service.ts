@@ -36,7 +36,13 @@ export class WebauthnService {
     return this.client.post(url, body, WebauthnService.DEFAULT_HEADERS)
       .pipe(
         map(res => AuthObjectMapper.mapToCredentialCreationOption(res)),
-        concatMap((options) => this.createAuthenticator(options, credentialName)));
+        concatMap((options) => {
+
+          console.log("GOO");
+          console.log(options);
+          return this.createAuthenticator(options, credentialName)
+
+        }));
   }
 
   set abortSignal(value: AbortSignal | undefined) {
@@ -55,6 +61,7 @@ export class WebauthnService {
    * @param username
    */
   public createAuthenticator(options: CredentialCreationOptions, credentialName: string, registrationMode = true) {
+   console.log(options)
     const createPK = navigator.credentials.create(options);
     return from(createPK)
       .pipe(
@@ -113,7 +120,7 @@ console.log(options);
       .pipe(
         map(cred => AuthObjectMapper.transformAuthResult(cred, username)),
         concatMap(res => {
-          const url = `${WebauthnService.BASE_URL}/auth/login/complete?usernameless=${username.length == 0}`;
+          const url = `${WebauthnService.BASE_URL}/auth/login/complete`;
 
           return this.client.post(url, res, WebauthnService.DEFAULT_HEADERS)
         })
@@ -168,7 +175,7 @@ console.log(options);
           const authResult = navigator.credentials.get(options);
           return from(authResult)
             .pipe(
-              map(cred => AuthObjectMapper.transformAuthResult(cred, "not_used_here")),
+              map(cred => AuthObjectMapper.transformAuthResult(cred, "")),
               concatMap(res => {
                 const url = `${WebauthnService.BASE_URL}/auth/transaction/complete`;
                 return this.client.post(url, res, WebauthnService.DEFAULT_HEADERS)

@@ -115,12 +115,11 @@ public class AuthController {
     @PostMapping("/login/complete")
     public ResponseEntity completeLogin(
             @Valid @RequestBody CompleteAuthDto data,
-            @RequestParam boolean usernameless,
             HttpSession session
     ) {
 
 
-        String sessionAccessKey = !usernameless ? data.getUsername() : "conditionalRequest";
+        String sessionAccessKey = data.getUsername().isEmpty() ?  "conditionalRequest" : data.getUsername();
 
         AssertionRequest request = (AssertionRequest) session.getAttribute(sessionAccessKey);
         var authResponse = this.authService.validateClientAuthResponse(data, request);

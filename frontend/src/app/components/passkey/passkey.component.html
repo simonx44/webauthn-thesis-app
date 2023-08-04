@@ -1,47 +1,41 @@
-<nx-card>
+<nx-card class="flex flex-1 h-full w-full">
   <nx-card-header>
     <h3 nxHeadline="subsection-small" class="nx-margin-bottom-2m border-b-2">
-      Passkey: {{data?.name}}
+      {{data?.name}}
     </h3>
   </nx-card-header>
-  <div class="docs-inverse-container">
-    <nx-accordion variant="light" negative="true">
 
-      <nx-expansion-panel>
-        <nx-expansion-panel-header>
-          <nx-expansion-panel-title>Authenticator</nx-expansion-panel-title>
-        </nx-expansion-panel-header>
-        <div class="flex flex-col ">
-          <div class="flex justify-between border-b-2 break-all" *ngFor="let value of authDataToRender | keyvalue">
-            <span class="font-bold min-w-[100px]">{{value.key}}:</span>
-            <div *ngIf="isObject(value.value); else elseBlock;">
-              <div class="flex" *ngFor="let innerItem of value.value | keyvalue">
-                <span class="font-bold">{{innerItem.key}}:</span>
-                <span>{{innerItem.value}}</span>
-              </div>
-            </div>
-            <ng-template #elseBlock>
-              <span>{{value.value}}</span>
-            </ng-template>
-          </div>
+  <div class="docs-inverse-container flex-1">
+    <div class="flex flex-col justify-between items-stretch">
+      <div class="flex justify-between">
+        <span class="font-bold flex-1">Type:</span>
+        <span class="text-right break-all">{{authDataToRender.type}}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-bold">Used:</span>
+        <span class="text-right  break-all">{{authDataToRender["count"]}}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-bold">Created:</span>
+        <span class="text-right  break-all">{{authDataToRender["createdOn"]}}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-bold">Last used:</span>
+        <span class="text-right break-all flex-1">{{authDataToRender["lastUsedOn"]}}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-bold">Model:</span>
+        <span class="text-right break-all flex-1">{{authDataToRender["model"]}}</span>
+      </div>
 
-        </div>
-      </nx-expansion-panel>
-      <nx-expansion-panel disabled="true">
-        <nx-expansion-panel-header>
-          <nx-expansion-panel-title
-          >Attestation
-          </nx-expansion-panel-title
-          >
-        </nx-expansion-panel-header>
-        <p nxCopytext="normal">Lorem ipsum</p>
-      </nx-expansion-panel>
-    </nx-accordion>
-    <div class="mt-2 w-full">
-      <button nxButton="primary" class="deleteBtn" type="button" [disabled]="!deleteable" (click)="deletePasskey()">
-        Delete
-      </button>
     </div>
+
+  </div>
+
+  <div class="mt-2 w-full">
+    <button nxButton="primary" class="deleteBtn" type="button" [disabled]="!deleteable" (click)="deletePasskey()">
+      Delete
+    </button>
   </div>
 
 </nx-card>

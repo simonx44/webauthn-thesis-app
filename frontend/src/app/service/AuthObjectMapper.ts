@@ -38,7 +38,6 @@ export class AuthObjectMapper {
         extensions: options.publicKey.extensions,
       }
     };
-    console.log(createOptions)
     return createOptions;
   }
 

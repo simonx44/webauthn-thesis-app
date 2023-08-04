@@ -2,6 +2,7 @@ import {Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {WebauthnService} from "../../service/webauthn.service";
 import {NxDialogService, NxModalRef} from '@aposin/ng-aquila/modal';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {Router} from "@angular/router";
 
 
 @Component({
@@ -21,7 +22,7 @@ export class HomeComponent implements OnInit {
   public httpRequest = {isLoading: false, isError: false};
   public authenticators: Array<any>;
 
-  constructor(private authService: WebauthnService, private readonly dialogService: NxDialogService) {
+  constructor(private router: Router, private authService: WebauthnService, private readonly dialogService: NxDialogService) {
     this.authenticators = [];
     this.formGroup = new FormGroup({
       passkeyName: new FormControl("", [
@@ -100,6 +101,10 @@ export class HomeComponent implements OnInit {
 
   closeConfirmationModal(){
     this.confirmationDialogRef?.close();
+  }
+
+  public navigateToTransactionView(){
+    this.router.navigate(["/transaction"])
   }
 
   public confirm(id: number){

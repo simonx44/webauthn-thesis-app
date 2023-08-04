@@ -44,8 +44,8 @@ export class AuthComponent implements OnInit {
       username: new FormControl("", [
         Validators.required,
         Validators.minLength(4),
-      ]),
-    });
+      ],),
+    }, {updateOn: 'submit'});
   }
 
   ngOnInit(): void {
@@ -105,8 +105,12 @@ export class AuthComponent implements OnInit {
   }
 
 
-  public usernamelessLogin() {
+  private abortAutofillCeremony() {
     this.abortController?.abort(new AbortError("Abort prev request"));
+  }
+
+  public usernamelessLogin() {
+    this.abortAutofillCeremony();
     this.authService.authenticateUsernameLess().subscribe((res) => {
       this.onSuccess(res)
     }, (err) => {
@@ -119,9 +123,7 @@ export class AuthComponent implements OnInit {
 
     if (error instanceof AbortError) {
       console.log("Request was aborted")
-
       return;
-
     } else if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
         // A client-side or network error occurred. Handle it accordingly.
@@ -134,32 +136,42 @@ export class AuthComponent implements OnInit {
 
         this.error = {isError: true, msg: error.message};
       }
+
     }
     this.initUsernamelessFlow();
   }
 
   public initAuth() {
     this.error.isError = false;
+    this.clearError();
     this.isLoginMode ? this.initLogin() : this.initRegistration();
   }
 
+  public clearError(){
+    console.log("Updae")
+    this.error = {isError: false, msg: ""};
+    this.formGroup.controls.username.markAsUntouched();
+
+  }
+
   private initLogin() {
-    console.log("LOGIN INIT:")
     const username = this.formGroup.controls.username?.value;
+    console.log( this.formGroup.controls);
+    console.log("username", username)
     this.validateInput();
     if (!this.formGroup.valid || !username) {
       return;
     }
-    this.abortController?.abort(new AbortError("Abort prev request"));
+    this.abortAutofillCeremony();
     this.authService.authenticateUser(username)
       .subscribe(res => this.onSuccess(res), (err) => this.handleError(err), () => {
       });
   }
 
   private initRegistration() {
+    this.abortAutofillCeremony();
     const username = this.formGroup.controls.username?.value;
-    this.validateInput();
-    console.log("validate");
+    //   this.validateInput();
     if (!this.formGroup.valid || !username) {
       return;
     }

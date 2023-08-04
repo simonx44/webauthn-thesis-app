@@ -15,24 +15,53 @@ export class PasskeyComponent implements OnInit {
 
   currentIndex = 0;
 
-  authDataToRender: Record<string, any>  = {};
+  authDataToRender: any = {};
 
 
   ngOnInit(): void {
 
     const authData = this.data?.attestationObject?.authData;
 
-    const dataToRender = {
-
-      "aaguid": authData?.attestedCredData.aaguid,
-      "Counter": authData?.counter,
-      "rpIdHash": authData?.rpIdHash,
-      "flags": authData?.flags
+    this.authDataToRender = {
+      "type": this.getDisplayedPasskeyName(this.data),
+      "count": this.data?.count.toString() ?? "",
+      "createdOn": this.transformDate(this.data?.createdOn ?? ""),
+      "lastUsedOn": this.transformDate(this.data?.lastUpdatedOn ?? ""),
+      "model" : "-"
     }
-    this.authDataToRender = dataToRender;
+
   }
 
-  public isObject(value: any){
+  private getDisplayedPasskeyName(passkey: PasskeyT | undefined) {
+
+    let name = "";
+
+    if (!passkey)
+      return "passkey";
+
+    const {isBackedUp, isDiscoverable, isBackupEligible} = passkey;
+
+    if (isDiscoverable) {
+      //name += isBackupEligible ? "Synchronizable " : "Device bound ";
+      name += isBackedUp ? "Multi Device Credential" : "Single Device Credential"
+    } else {
+      name += "Server side credential"
+    }
+    return name;
+
+  }
+
+  private transformDate(dateString: string) {
+    const date = new Date(dateString);
+    if (!date)
+      return "-";
+
+    return `${date.toDateString()} ${date.toLocaleTimeString()}`
+
+
+  }
+
+  public isObject(value: any) {
     return typeof value === "object";
   }
 
@@ -40,11 +69,6 @@ export class PasskeyComponent implements OnInit {
   public deletePasskey() {
     this.deletePasskeyEvent.emit(this.data?.id);
   }
-
-
-
-
-
 
 
 }

@@ -19,7 +19,6 @@ export type PasskeyT = {
   attestationObject: {
     attStmt: Record<string, any>,
     authData: {
-
       "rpIdHash": string,
       "flags": {
         "UP": boolean,
@@ -38,10 +37,15 @@ export type PasskeyT = {
     }
     fmt: string
   }
-  count: number,
   id: number,
   name: string,
   publicKey: string,
+  count: number,
+  lastUpdatedOn: string,
+  createdOn: string,
+  isBackedUp: boolean,
+  isBackupEligible: boolean,
+  isDiscoverable: boolean,
   user: {
     id: number,
     username: string,

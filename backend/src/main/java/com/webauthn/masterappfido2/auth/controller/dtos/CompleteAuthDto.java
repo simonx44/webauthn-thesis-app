@@ -15,5 +15,4 @@ public class CompleteAuthDto {
 
     String username;
 
-
 }
