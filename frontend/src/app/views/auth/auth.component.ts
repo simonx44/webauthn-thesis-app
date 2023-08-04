@@ -32,6 +32,7 @@ export class AuthComponent implements OnInit {
     options: undefined
   };
   public isLoading: boolean = false;
+  public webAuthNSupported = true;
   public isLoginMode = true;
   public error = {isError: false, msg: ""};
   toastRef!: NxMessageToastRef;
@@ -55,6 +56,14 @@ export class AuthComponent implements OnInit {
   }
 
   async mediationAvailable() {
+
+    console.log(window.PublicKeyCredential);
+
+    if(!window.PublicKeyCredential){
+      this.webAuthNSupported = false;
+      return false;
+    }
+
     const pubKeyCred = PublicKeyCredential;
     // Check if the function exists on the browser - Not safe to assume as the page will crash if the function is not available
     //typeof check is used as browsers that do not support mediation will not have the 'isConditionalMediationAvailable' method available

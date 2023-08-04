@@ -1,4 +1,5 @@
-<div class="flex flex-col gap-4 justify-center items-center flex-1 h-[75vh]">
+<div *ngIf="webAuthNSupported; else notSupported"
+     class="flex flex-col gap-4 justify-center items-center flex-1 h-[75vh] mx-4">
   <div>
     <h3 nxHeadline="subsection-large">
       FIDO2 Prototyp
@@ -12,17 +13,11 @@
 
   <div class="flex flex-col gap-4">
 
-    <div *ngIf="false">
-      <label for="name">Username:</label>
-      <input type="text" name="name" autocomplete="username webauthn">
-      <label for="password">Password:</label>
-      <input type="password" name="password" autocomplete="current-password webauthn">
-    </div>
 
-    <form [formGroup]="formGroup" class="min-w-[400px]" (ngSubmit)="initAuth()">
+    <form [formGroup]="formGroup" class="" (ngSubmit)="initAuth()">
 
-      <nx-formfield label="Username" >
-        <input nxInput type="text" formControlName="username" autocomplete="username webauthn" />
+      <nx-formfield label="Username">
+        <input nxInput type="text" formControlName="username" autocomplete="username webauthn"/>
         <nx-error nxFormfieldError>
           Your username is missing! At least 4 letters required.
         </nx-error>
@@ -45,7 +40,7 @@
       </div>
     </form>
 
-    <div class="border-t-2 border-blue-950"></div>
+    <div *ngIf="autoFillMode" class="border-t-2 border-blue-950"></div>
 
     <div class="" *ngIf="autoFillMode">
       <button nxButton="primary" type="button" (click)="usernamelessLogin()">
@@ -56,3 +51,46 @@
 
   </div>
 </div>
+
+<ng-template #notSupported>
+  <div class="flex flex-col gap-4 justify-center items-center flex-1 h-[75vh] mx-4">
+    <nx-message context="warning">
+      <span class="nx-font-weight-bold">Missing support:</span><br/>
+      WebAuthN is not supported
+    </nx-message>
+
+    <div>
+      <nx-formfield label="Username">
+        <input nxInput #inputToCount maxlength="15"/>
+        <span nxFormfieldHint>
+        <span *ngIf="inputToCount.value?.length === 0">
+            max. 15 characters
+        </span>
+        <span *ngIf="inputToCount.value.length > 0">
+            {{15 - (inputToCount.value.length || 0)}} characters remaining
+        </span>
+    </span>
+      </nx-formfield>
+      <nx-formfield label="Password">
+        <input
+          required
+          nxInput
+          #testInput
+          type="password"
+
+        />
+        <nx-password-toggle
+          [control]="testInput"
+          ariaLabel="Your custom show password label"
+          nxFormfieldSuffix
+        ></nx-password-toggle>
+        <nx-error nxFormfieldError>
+          <b>Please note: </b> you have to fill in your password to continue.
+        </nx-error>
+      </nx-formfield>
+      <button nxButton="primary" type="button" [disabled]="true">
+        <span>Login</span>
+      </button>
+    </div>
+  </div>
+</ng-template>
